@@ -22,7 +22,7 @@ WHITELIST = {
     'leftParentHash': {
         'type': str
     },
-    'leftParentHash': {
+    'rightParentHash': {
         'type': str
     },
     'trustChainConsensus': {
