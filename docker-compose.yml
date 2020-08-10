@@ -12,6 +12,8 @@ services:
     networks:
       - default
       - database
+    depends_on:
+      - database
   fetch:
     build: ./fetch
     environment:
@@ -37,6 +39,7 @@ services:
       - database
     volumes:
       - "./mongo-db-vol:/data/db"
+    command: --quiet
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
       interval: 10s
