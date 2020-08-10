@@ -4,9 +4,11 @@ from quart import Quart, websocket
 PORT = os.environ['PORT']
 app = Quart(__name__)
 
-@app.route('/')
-async def hello():
-    return 'hello'
+
+@app.route('/address/<address>/transaction', defaults={'transaction': None})
+@app.route('/address/<address>/transaction/<transaction>')
+async def get_transaction(address, transaction):
+    return 'address' + ' - ' + transaction
 
 @app.websocket('/ws')
 async def ws():

@@ -1,7 +1,14 @@
 from datetime import datetime
 
-def parseTime(timestamp):
-    return datetime.fromtimestamp(timestamp)
+def baseTransactions_middleware(data):
+    for item in data:
+        if 'amount' in item and item['amount'] is not None:
+            item['amount'] = float(item['amount'])
+        if 'createTime' in item and item['createTime'] is not None:
+            item['createTime'] = datetime.fromtimestamp(item['createTime'])
+        if 'originalAmount' in item and item['originalAmount'] is not None:
+            item['originalAmount'] = float(item['originalAmount'])
+    return data
 
 WHITELIST = {
     'hash': {
@@ -9,7 +16,7 @@ WHITELIST = {
         'required': True
     },
     'amount': {
-        'type': float,
+        'middleware': float,
         'required': True
     },
     'type': {
@@ -17,7 +24,8 @@ WHITELIST = {
         'required': True
     },
     'baseTransactions': {
-        'type': list
+        'type': list,
+        'middleware': baseTransactions_middleware
     },
     'leftParentHash': {
         'type': str
@@ -33,15 +41,15 @@ WHITELIST = {
     },
     'transactionConsensusUpdateTime': {
         'type': float,
-        'middleware': parseTime
+        'middleware': datetime.fromtimestamp
     },
     'createTime': {
         'type': float,
-        'middleware': parseTime
+        'middleware': datetime.fromtimestamp
     },
     'attachmentTime': {
         'type': float,
-        'middleware': parseTime
+        'middleware': datetime.fromtimestamp
     },
     'senderTrustScore': {
         'type': float,
