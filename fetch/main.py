@@ -3,10 +3,10 @@ import sys
 import http.client
 import json
 from pymongo import MongoClient, UpdateOne
-import gnupg
 import validator
 from pprint import pprint
 import init_db
+import crypto
 
 SERVER = os.environ['SERVER']
 ROUTE = os.environ['ROUTE']
@@ -24,6 +24,7 @@ db = mongo_client[DB_NAME]
 def build_object(data):
     transaction_hash = data['hash']
     final = {}
+
     for key in validator.WHITELIST:
         key_settings = validator.WHITELIST[key]
         if 'required' in key_settings and key_settings['required'] and (key not in data or data[key] is None):
@@ -45,6 +46,9 @@ def build_object(data):
                     sys.stderr.write('error in "' + key + '" middleware\n')
                     sys.stderr.write(error)
                     exit(1)
+            if 'encrypt' in key_settings and key_settings['encrypt']:
+                data[key] = crypto.encrypt(data[key], ADDRESS)
+
         final[key] = data[key]
     return final
 
@@ -106,4 +110,6 @@ if data['status'] != 'Success':
 transactions = data['transactionsData']
 insert_objs = map(build_object, transactions)
 result = insert_transactions_to_db(insert_objs)
-print(result.bulk_api_result)
+stats = result.bulk_api_result
+if stats['nUpserted'] > 0 or stats['nModified'] > 0:
+    print('new data')
