@@ -14,6 +14,7 @@ ADDRESS = os.environ['ADDRESS']
 DB_USER = os.environ['DB_USER']
 DB_PASSWORD = os.environ['DB_PASSWORD']
 DB_NAME = os.environ['DB_NAME']
+ENCODING = 'utf-8'
 
 
 mongo_client = MongoClient(
@@ -92,7 +93,7 @@ if res.status != 200:
 
 print('receiving data for address ' + ADDRESS)
 while chunk := res.read(200):
-    buffer += str(chunk, 'utf-8')
+    buffer += str(chunk, ENCODING)
 
 data = {}
 try:
