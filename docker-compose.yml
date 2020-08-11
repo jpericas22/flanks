@@ -9,6 +9,7 @@ services:
       - "DB_USER=root"
       - "DB_PASSWORD=flanks"
       - "DB_NAME=flanks"
+      - "JWT_SECRET=Phpvgo3OM1Q88Qps0IIOxKeHbdBGkStH"
     networks:
       - default
       - database

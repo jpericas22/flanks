@@ -10,6 +10,7 @@ DB_USER = os.environ['DB_USER']
 DB_PASSWORD = os.environ['DB_PASSWORD']
 DB_NAME = os.environ['DB_NAME']
 USER_PASSWORD = '123456'
+ENCODING = 'utf-8'
 
 mongo_client = MongoClient(
     'mongodb://'+DB_USER+':'+DB_PASSWORD+'@database:27017')
@@ -17,14 +18,16 @@ db = mongo_client[DB_NAME]
 
 def hash_password(password):
     salt = secrets.token_hex(16)
-    return hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000).hex()
+    return hashlib.pbkdf2_hmac('sha256', password.encode(ENCODING), salt.encode(ENCODING), 100000).hex(), salt
 
 
 def run():
     pubkey = crypto.gen_keys()
+    (password_hash, salt) = hash_password(USER_PASSWORD)
     default_user = {
         'username': 'client',
-        'password': hash_password(USER_PASSWORD),
+        'password': password_hash,
+        'salt': salt,
         'addressList': [ADDRESS],
         'publicKey': pubkey
     }
