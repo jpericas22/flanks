@@ -77,11 +77,11 @@ init_db.run()
 
 buffer = ''
 headers = {
-    "Content-type": "application/json",
-    "Accept": "application/json"
+    'Content-type': 'application/json',
+    'Accept': 'application/json'
 }
 req = {
-    "address": ADDRESS
+    'address': ADDRESS
 }
 conn = http.client.HTTPSConnection(SERVER)
 conn.request('POST', ROUTE, json.dumps(req), headers)
