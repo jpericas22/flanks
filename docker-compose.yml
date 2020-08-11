@@ -33,7 +33,7 @@ services:
       - "MONGO_INITDB_ROOT_USERNAME=root"
       - "MONGO_INITDB_ROOT_PASSWORD=flanks"
     ports:
-      - "27017:27017"
+      - "27017:27017" #DEBUG
     networks:
       - default
       - database
