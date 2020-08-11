@@ -28,6 +28,18 @@ services:
       - database
     depends_on:
       - database
+  sheets:
+    build: ./sheets
+    environment:
+      - "DB_USER=root"
+      - "DB_PASSWORD=flanks"
+      - "DB_NAME=flanks"
+      - "GOOGLE_API_KEY=AIzaSyBfI1GcJSvHXSAy1y7f2vXQxelWV6q5T1c"
+      - "SHEET"
+    networks:
+      - database
+    depends_on:
+      - database
   database:
     image: 'mongo'
     environment:

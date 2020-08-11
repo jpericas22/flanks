@@ -24,7 +24,7 @@ def encrypt(data, address):
     key_hex = get_public_key(address)
     key = rsa.PublicKey.load_pkcs1(bytes.fromhex(key_hex), format='DER')
     data_bytes = data.encode(ENCODING)
-    data_chunks = [data_bytes[i:i+53]
+    data_chunks = [data_bytes[i:i+CHUNK_SIZE]
                    for i in range(0, len(data_bytes), CHUNK_SIZE)]
     encrypted_chunks = []
     for chunk in data_chunks:
