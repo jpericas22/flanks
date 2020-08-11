@@ -28,7 +28,8 @@ WHITELIST = {
         'middleware': baseTransactions_middleware
     },
     'leftParentHash': {
-        'type': str
+        'type': str,
+        'encrypt': True
     },
     'rightParentHash': {
         'type': str
