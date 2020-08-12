@@ -6,10 +6,8 @@ services:
       - "5000:5000"
     environment:
       - "PORT=5000"
-      - "DB_USER=root"
-      - "DB_PASSWORD=flanks"
-      - "DB_NAME=flanks"
-      - "JWT_SECRET=Phpvgo3OM1Q88Qps0IIOxKeHbdBGkStH"
+    env_file:
+      - environment.env
     networks:
       - default
       - database
@@ -18,14 +16,8 @@ services:
     command: ./dockerize -wait tcp://database:27017 python main.py
   fetch:
     build: ./fetch
-    environment:
-      - "SERVER=cnode2.coti.bz"
-      - "ROUTE=/transaction/addressTransactions"
-      - "ADDRESS=51dbd2feecb8c9e3b5c88129da88156d738d00d57bf4524cc780221c4e414ffc9372b00ad7d75679032d928776b044d40d5febb783d8ac9b241b7c0b1cad77de9b699c23"
-      - "SHEET_ID=1RcMHaqXxkZm3FVWxhjN81yx4a9oE5OAIl8M1bZzwZ80"
-      - "DB_USER=root"
-      - "DB_PASSWORD=flanks"
-      - "DB_NAME=flanks"
+    env_file:
+      - environment.env
     networks:
       - database
       - queue
@@ -35,10 +27,8 @@ services:
     command: ./dockerize -wait tcp://database:27017 -wait tcp://queue:5672 sh main.sh
   sheets:
     build: ./sheets
-    environment:
-      - "DB_USER=root"
-      - "DB_PASSWORD=flanks"
-      - "DB_NAME=flanks"
+    env_file:
+      - environment.env
     networks:
       - database
       - queue
@@ -48,9 +38,8 @@ services:
     command: ./dockerize -wait tcp://database:27017 -wait tcp://queue:5672 python main.py
   database:
     image: 'mongo:4.4.0-bionic'
-    environment:
-      - "MONGO_INITDB_ROOT_USERNAME=root"
-      - "MONGO_INITDB_ROOT_PASSWORD=flanks"
+    env_file:
+      - environment.env
     ports: #DEBUG
       - "27017:27017"
     networks:

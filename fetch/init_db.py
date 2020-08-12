@@ -22,7 +22,7 @@ def hash_password(password):
 
 
 def run():
-    pubkey = crypto.gen_keys()
+    pubkey = crypto.gen_keys(ADDRESS)
     (password_hash, salt) = hash_password(USER_PASSWORD)
     default_user = {
         'username': 'client',
