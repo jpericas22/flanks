@@ -116,7 +116,7 @@ async def get_transaction(address, transaction):
         params['transaction'] = transaction
         
 
-    result = await db.get_transactions(address, params)
+    result = db.get_transactions(address, params)
     return result, 200
 
 sys.stdout.write('started api service\n')

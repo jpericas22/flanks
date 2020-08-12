@@ -14,7 +14,7 @@ mongo_client = MongoClient(
 db = mongo_client[DB_NAME]
 
 
-async def get_transactions(address, filter):
+def get_transactions(address, filter):
     transactions_collection = db['transactions_'+address]
     params = {}
     params['createTime'] = {}
@@ -42,7 +42,6 @@ async def get_transactions(address, filter):
 
     results = list(transactions_collection.find(
         params, skip=skip, limit=ITEMS_PER_PAGE, projection={'_id': 0}))
-
     return {
         'count': count,
         'countTotal': len(results),

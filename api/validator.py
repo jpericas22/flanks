@@ -1,7 +1,7 @@
 from datetime import datetime
 
 def date_middleware(input):
-    DEFAULT_FORMAT = '%Y-%m-%d %H:%M'
+    DEFAULT_FORMAT = '%d/%m/%Y %H:%M'
     return datetime.strptime(input, DEFAULT_FORMAT)
 
 WHITELIST = {
