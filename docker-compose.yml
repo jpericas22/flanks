@@ -15,51 +15,66 @@ services:
       - database
     depends_on:
       - database
+    command: ./dockerize -wait tcp://database:27017 python main.py
   fetch:
     build: ./fetch
     environment:
       - "SERVER=cnode2.coti.bz"
       - "ROUTE=/transaction/addressTransactions"
       - "ADDRESS=51dbd2feecb8c9e3b5c88129da88156d738d00d57bf4524cc780221c4e414ffc9372b00ad7d75679032d928776b044d40d5febb783d8ac9b241b7c0b1cad77de9b699c23"
+      - "SHEET_ID=1RcMHaqXxkZm3FVWxhjN81yx4a9oE5OAIl8M1bZzwZ80"
       - "DB_USER=root"
       - "DB_PASSWORD=flanks"
       - "DB_NAME=flanks"
     networks:
       - database
+      - queue
     depends_on:
       - database
+      - queue
+    command: ./dockerize -wait tcp://database:27017 -wait tcp://queue:5672 sh main.sh
   sheets:
     build: ./sheets
     environment:
       - "DB_USER=root"
       - "DB_PASSWORD=flanks"
       - "DB_NAME=flanks"
-      - "GOOGLE_API_KEY=AIzaSyBfI1GcJSvHXSAy1y7f2vXQxelWV6q5T1c"
-      - "SHEET_ID=1I6kQHV-UVrseq1FMK66hB_pRrph0p-P0i1oPTmGwrlM"
-      - "ADDRESS=51dbd2feecb8c9e3b5c88129da88156d738d00d57bf4524cc780221c4e414ffc9372b00ad7d75679032d928776b044d40d5febb783d8ac9b241b7c0b1cad77de9b699c23"
-
     networks:
       - database
+      - queue
     depends_on:
       - database
+      - queue
+    command: ./dockerize -wait tcp://database:27017 -wait tcp://queue:5672 python main.py
   database:
-    image: 'mongo'
+    image: 'mongo:4.4.0-bionic'
     environment:
       - "MONGO_INITDB_ROOT_USERNAME=root"
       - "MONGO_INITDB_ROOT_PASSWORD=flanks"
-    ports:
-      - "27017:27017" #DEBUG
+    ports: #DEBUG
+      - "27017:27017"
     networks:
       - default
       - database
     volumes:
       - "./mongo-db-vol:/data/db"
-    command: --quiet
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
-      interval: 10s
+      interval: 30s
       timeout: 10s
-      retries: 6
-
+      retries: 10
+  queue:
+    image: 'rabbitmq:3.8.6'
+    ports: #DEBUG
+      - "5672:5672"
+    networks:
+      - default
+      - queue
+    healthcheck:
+      test: rabbitmq-diagnostics -q check_running
+      interval: 30s
+      timeout: 10s
+      retries: 10
 networks:
   database:
+  queue:

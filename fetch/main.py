@@ -1,5 +1,6 @@
 import os
 import sys
+import pika
 import http.client
 import json
 from pymongo import MongoClient, UpdateOne
@@ -11,6 +12,7 @@ import crypto
 SERVER = os.environ['SERVER']
 ROUTE = os.environ['ROUTE']
 ADDRESS = os.environ['ADDRESS']
+SHEET_ID = os.environ['SHEET_ID']
 DB_USER = os.environ['DB_USER']
 DB_PASSWORD = os.environ['DB_PASSWORD']
 DB_NAME = os.environ['DB_NAME']
@@ -112,5 +114,18 @@ transactions = data['transactionsData']
 insert_objs = map(build_object, transactions)
 result = insert_transactions_to_db(insert_objs)
 stats = result.bulk_api_result
-if stats['nUpserted'] > 0 or stats['nModified'] > 0:
-    print('new data')
+if stats['nUpserted'] > 0 or stats['nModified'] > 0 or True:
+    print('TESTING')
+    message = {
+        'address': ADDRESS,
+        'sheet_id': SHEET_ID
+    }
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters('queue'))
+    channel = connection.channel()
+    channel.queue_declare(queue='sheets')
+    channel.basic_publish(exchange='',
+                          routing_key='sheets',
+                          body=json.dumps(message))
+    print("sent")
+    connection.close()
