@@ -1,5 +1,7 @@
 import sys
 import os
+import pika
+from time import sleep
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError as GoogleHttpError
@@ -7,14 +9,11 @@ from datetime import datetime
 import json
 import db
 
-# SHEET_URL = https://docs.google.com/spreadsheets/d/1I6kQHV-UVrseq1FMK66hB_pRrph0p-P0i1oPTmGwrlM/edit
-ADDRESS = os.environ['ADDRESS']
-SHEET_ID = os.environ['SHEET_ID']
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
           'https://www.googleapis.com/auth/drive']
 SERVICE_ACCOUNT_FILE = './credentials.json'
 DEFAULT_FORMAT = '%d/%m/%Y %H:%M:%S'
-
+CHUNK_SIZE = 2000
 
 credentials = service_account.Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES)
@@ -22,32 +21,7 @@ sheets_service = build('sheets', 'v4', credentials=credentials)
 drive_service = build('drive', 'v3', credentials=credentials)
 
 
-def build_sheet(title, data):
-    rows = []
-    for row in data:
-        current_row = []
-        for col in row:
-            if type(col) == int or type(col) == float:
-                current_row.append({
-                    'userEnteredValue': {
-                        'numberValue': col
-                    }
-                })
-            elif type(col) == bool:
-                current_row.append({
-                    'userEnteredValue': {
-                        'boolValue': col
-                    }
-                })
-            else:
-                current_row.append({
-                    'userEnteredValue': {
-                        'stringValue': str(col)
-                    }
-                })
-        rows.append({
-            'values': current_row
-        })
+def build_sheet(title):
     sheet_obj = {
         "properties": {
             "title": title,
@@ -63,7 +37,7 @@ def build_sheet(title, data):
                     {
                         "startRow": 0,
                         "startColumn": 0,
-                        "rowData": rows,
+                        "rowData": [[]],
                     }
                 ],
             }
@@ -72,38 +46,56 @@ def build_sheet(title, data):
     return sheet_obj
 
 
-def build_update(data, sheet_range):
-    update_obj = {
-        "range": sheet_range,
-        "majorDimension": "ROWS",
-        "values": data
-    }
-    return update_obj
+def build_append(data):
+    row_length = len(data[0])
+    sheet_col_end = chr(ord('A')+row_length)
+    append_data = []
+
+    data_chunks = [data[i:i+CHUNK_SIZE]
+                   for i in range(0, len(data), CHUNK_SIZE)]
+    for i, chunk in enumerate(data_chunks):
+        value_obj = {
+            "range": 'A'+str(i*CHUNK_SIZE+1)+':'+sheet_col_end+str((i+1)*CHUNK_SIZE+1),
+            "majorDimension": "ROWS",
+            "values": chunk
+        }
+        append_data.append(value_obj)
+
+    return append_data
+
+
+def execute_append(sheet, id, data):
+    append = build_append(data)
+    for i, query in enumerate(append):
+        sys.stdout.write('uploading part ' + str(i+1) +
+                         '/' + str(len(append)) + '\n')
+        sheet.values().append(spreadsheetId=id,
+                              range=query['range'], valueInputOption='USER_ENTERED', includeValuesInResponse=False, insertDataOption='OVERWRITE', body=query).execute()
+        sleep(1)
 
 
 def update_sheet(address, id, data):
+    # pylint: disable=maybe-no-member
+    sheet = sheets_service.spreadsheets()
     try:
-        row_length = len(data[0])
-        sheet_range = 'A:'+chr(ord('A')+row_length)
-        sheet = sheets_service.spreadsheets()
-        update = build_update(data, sheet_range)
-        sheet.values().update(spreadsheetId=id,
-                              range=sheet_range, valueInputOption='USER_ENTERED', includeValuesInResponse=False, body=update).execute()
-        return id, data
+        sheet.values().clear(spreadsheetId=id, range='A1:Z').execute()
+        execute_append(sheet, id, data)
+        return id
     except GoogleHttpError as e:
         if e.resp.status == 404:
-            init_sheet = build_sheet(address, data)
+            init_sheet = build_sheet(address)
             sheets_res = sheet.create(body=init_sheet).execute()
-            print(sheets_res)
             id = sheets_res['spreadsheetId']
+            print('ID: '+id)
             permissions = drive_service.permissions()
             permissions_obj = {
                 'type': 'anyone',
-                'role': 'writer'
+                'role': 'reader'
             }
             permissions.create(
                 fileId=id, body=permissions_obj).execute()
-            return id, []
+            execute_append(sheet, id, data)
+            return id
         print(e)
         exit(1)
 
@@ -113,9 +105,13 @@ def json_date_handler(o):
         return o.strftime(DEFAULT_FORMAT)
 
 
-sys.stdout.write('starting sheet update')
-transactions = db.get_transactions(ADDRESS)
+sys.stdout.write('starting sheet update\n')
+transactions = []#db.get_transactions(ADDRESS)
 rows = [[]]
+"""
+if len(transactions) == 0:
+    sys.stdout.write('no transacctions for address ' + 'ADDRESS' + '\n')
+    exit(0)
 for key in transactions[0]:
     rows[0].append(key)
 for transaction in transactions:
@@ -125,11 +121,29 @@ for transaction in transactions:
             value = value.strftime(DEFAULT_FORMAT)
         if type(value) == dict or type(value) == list:
             value = json.dumps(value, default=json_date_handler)
+            if len(value) > 50000:
+                message = ' - VALUE TRUNCATED'
+                value = value[0:(50000-len(message))]
         if value is None:
             value = ''
         cols.append(value)
     rows.append(cols)
-sys.stdout.write('sheet update finished')
+"""
 
 
-update_sheet(ADDRESS, SHEET_ID, rows)
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters(host='queue'))
+channel = connection.channel()
+
+channel.queue_declare(queue='sheets')
+sys.stdout.write('sheets service waiting for messages\n')
+
+def run(ch, method, properties, body):
+    sys.stdout.write('received message')
+    print(body)
+    #update_sheet(ADDRESS, SHEET_ID, rows)
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+channel.basic_qos(prefetch_count=1)
+channel.basic_consume(queue='sheets', on_message_callback=run)
+channel.start_consuming()
