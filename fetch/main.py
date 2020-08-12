@@ -9,8 +9,8 @@ from pprint import pprint
 import init_db
 import crypto
 
-SERVER = os.environ['SERVER']
-ROUTE = os.environ['ROUTE']
+HOSTNAME = os.environ['FETCH_HOSTNAME']
+PATH = os.environ['FETCH_PATH']
 ADDRESS = os.environ['ADDRESS']
 SHEET_ID = os.environ['SHEET_ID']
 DB_USER = os.environ['DB_USER']
@@ -85,8 +85,8 @@ headers = {
 req = {
     'address': ADDRESS
 }
-conn = http.client.HTTPSConnection(SERVER)
-conn.request('POST', ROUTE, json.dumps(req), headers)
+conn = http.client.HTTPSConnection(HOSTNAME)
+conn.request('POST', PATH, json.dumps(req), headers)
 res = conn.getresponse()
 
 if res.status != 200:
