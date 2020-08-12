@@ -58,7 +58,7 @@ def build_object(data):
 
 def insert_transactions_to_db(data):
     transactions_collection = db['transactions_'+ADDRESS]
-    transactions_collection.create_index('hash', unique=True)
+    transactions_collection.create_index('hash')
     requests = []
     for item in data:
         request = UpdateOne(
@@ -71,7 +71,7 @@ def insert_transactions_to_db(data):
     return result
 
 
-sys.stdout.write('starting fetcher\n')
+sys.stdout.write('started fetch service\n')
 
 # RUTINA PARA INSERTAR USUARIO DEFAULT DEL CLIENTE
 init_db.run()
@@ -93,8 +93,11 @@ if res.status != 200:
     sys.stderr.write('received server status ' + res.status + '\n')
     exit(1)
 
-print('receiving data for address ' + ADDRESS)
+sys.stdout.write('fetching data for address ' + ADDRESS + '\n')
+chunk_n = 0
 while chunk := res.read(200):
+    chunk_n += 1
+    sys.stdout.write('received chunk ' + str(chunk_n) + '\n')
     buffer += str(chunk, ENCODING)
 
 data = {}
@@ -112,10 +115,11 @@ if data['status'] != 'Success':
 
 transactions = data['transactionsData']
 insert_objs = map(build_object, transactions)
+sys.stdout.write('processing ' + str(len(transactions)) + ' entries\n')
 result = insert_transactions_to_db(insert_objs)
 stats = result.bulk_api_result
 if stats['nUpserted'] > 0 or stats['nModified'] > 0 or True:
-    print('TESTING')
+    sys.stdout.write('received updates')
     message = {
         'address': ADDRESS,
         'sheet_id': SHEET_ID
@@ -127,5 +131,4 @@ if stats['nUpserted'] > 0 or stats['nModified'] > 0 or True:
     channel.basic_publish(exchange='',
                           routing_key='sheets',
                           body=json.dumps(message))
-    print("sent")
     connection.close()

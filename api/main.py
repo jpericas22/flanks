@@ -1,4 +1,5 @@
 import os
+import sys
 from quart import Quart, request
 import db
 import auth
@@ -118,5 +119,5 @@ async def get_transaction(address, transaction):
     result = db.get_transactions(address, params)
     return result, 200
 
-
+sys.stdout.write('started api service\n')
 app.run(host="0.0.0.0", port=PORT, debug=True)

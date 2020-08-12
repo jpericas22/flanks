@@ -13,7 +13,7 @@ services:
       - database
     depends_on:
       - database
-    command: ./dockerize -wait tcp://database:27017 python main.py
+    command: ./dockerize -wait tcp://database:27017 -timeout 5m python main.py
   fetch:
     build: ./fetch
     env_file:
@@ -24,7 +24,7 @@ services:
     depends_on:
       - database
       - queue
-    command: ./dockerize -wait tcp://database:27017 -wait tcp://queue:5672 sh main.sh
+    command: ./dockerize -wait tcp://database:27017 -wait tcp://queue:5672 -timeout 5m sh main.sh
   sheets:
     build: ./sheets
     env_file:
@@ -35,7 +35,7 @@ services:
     depends_on:
       - database
       - queue
-    command: ./dockerize -wait tcp://database:27017 -wait tcp://queue:5672 python main.py
+    command: ./dockerize -wait tcp://database:27017 -wait tcp://queue:5672 -timeout 5m python main.py
   database:
     image: 'mongo:4.4.0-bionic'
     env_file:
@@ -47,23 +47,11 @@ services:
       - database
     volumes:
       - "./mongo-db-vol:/data/db"
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
-      interval: 30s
-      timeout: 10s
-      retries: 10
   queue:
     image: 'rabbitmq:3.8.6'
-    ports: #DEBUG
-      - "5672:5672"
     networks:
       - default
       - queue
-    healthcheck:
-      test: rabbitmq-diagnostics -q check_running
-      interval: 30s
-      timeout: 10s
-      retries: 10
 networks:
   database:
   queue:

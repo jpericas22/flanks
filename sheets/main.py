@@ -1,13 +1,13 @@
-import sys
-import os
-import pika
-from time import sleep
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError as GoogleHttpError
-from datetime import datetime
-import json
 import db
+import json
+from datetime import datetime
+from googleapiclient.errors import HttpError as GoogleHttpError
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
+from time import sleep
+import pika
+import os
+import sys
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
           'https://www.googleapis.com/auth/drive']
@@ -105,45 +105,56 @@ def json_date_handler(o):
         return o.strftime(DEFAULT_FORMAT)
 
 
-sys.stdout.write('starting sheet update\n')
-transactions = []#db.get_transactions(ADDRESS)
-rows = [[]]
-"""
-if len(transactions) == 0:
-    sys.stdout.write('no transacctions for address ' + 'ADDRESS' + '\n')
-    exit(0)
-for key in transactions[0]:
-    rows[0].append(key)
-for transaction in transactions:
-    cols = []
-    for _, value in transaction.items():
-        if type(value) == datetime:
-            value = value.strftime(DEFAULT_FORMAT)
-        if type(value) == dict or type(value) == list:
-            value = json.dumps(value, default=json_date_handler)
-            if len(value) > 50000:
-                message = ' - VALUE TRUNCATED'
-                value = value[0:(50000-len(message))]
-        if value is None:
-            value = ''
-        cols.append(value)
-    rows.append(cols)
-"""
+def update_routine(address, sheet_id):
+    sys.stdout.write('starting sheet update\n')
+    transactions = db.get_transactions(address)
+    rows = [[]]
+    if len(transactions) == 0:
+        sys.stdout.write('no transacctions for address ' + 'ADDRESS' + '\n')
+        exit(0)
+    for key in transactions[0]:
+        rows[0].append(key)
+    for transaction in transactions:
+        cols = []
+        for _, value in transaction.items():
+            if type(value) == datetime:
+                value = value.strftime(DEFAULT_FORMAT)
+            if type(value) == dict or type(value) == list:
+                value = json.dumps(value, default=json_date_handler)
+                if len(value) > 50000:
+                    message = ' - VALUE TRUNCATED'
+                    value = value[0:(50000-len(message))]
+            if value is None:
+                value = ''
+            cols.append(value)
+        rows.append(cols)
+    update_sheet(address, sheet_id, rows)
 
 
+def process_message(ch, method, properties, body):
+    sys.stdout.write('received message')
+    try:
+        message = json.loads(body)
+    except:
+        sys.stderr.write('malformed message\n')
+        sys.stderr.write('message:\n')
+        sys.stderr.write(repr(body))
+
+    if 'action' not in message:
+        sys.stdout.write(repr(message))
+    elif message['action'] == 'update':
+        address = message['address']
+        sheet_id = message['sheet_id']
+        update_routine(address, sheet_id)
+        sys.stdout.write('updated address '+address+'\n')
+
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+sys.stdout.write('started sheets service\n')
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='queue'))
 channel = connection.channel()
-
 channel.queue_declare(queue='sheets')
-sys.stdout.write('sheets service waiting for messages\n')
-
-def run(ch, method, properties, body):
-    sys.stdout.write('received message')
-    print(body)
-    #update_sheet(ADDRESS, SHEET_ID, rows)
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-
 channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue='sheets', on_message_callback=run)
+channel.basic_consume(queue='sheets', on_message_callback=process_message)
 channel.start_consuming()
