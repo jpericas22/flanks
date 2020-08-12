@@ -5,6 +5,7 @@ import rsa
 DB_USER = os.environ['DB_USER']
 DB_PASSWORD = os.environ['DB_PASSWORD']
 DB_NAME = os.environ['DB_NAME']
+KEYS_DIR = os.environ['KEYS_DIR']
 KEY_BYTES = 512
 CHUNK_SIZE = 53
 ENCODING = 'utf-8'
@@ -32,9 +33,9 @@ def encrypt(data, address):
     return encrypted_chunks
 
 
-def gen_keys():
+def gen_keys(address):
     (pubkey, privkey) = rsa.newkeys(KEY_BYTES)
-    file = open('./keys/priv.pem', 'w')
+    file = open(KEYS_DIR+'/'+address+'.der', 'w')
     file.write(privkey.save_pkcs1().decode(ENCODING))
     file.close()
     return pubkey.save_pkcs1(format='DER').hex()
