@@ -8,6 +8,9 @@ from time import sleep
 import pika
 import os
 import sys
+import functools
+import threading
+
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
           'https://www.googleapis.com/auth/drive']
@@ -105,7 +108,7 @@ def json_date_handler(o):
         return o.strftime(DEFAULT_FORMAT)
 
 
-def update_routine(address, sheet_id):
+def update_routine(address, sheet_id, connection, ch, method):
     sys.stdout.write('starting sheet update\n')
     transactions = db.get_transactions(address)
     rows = [[]]
@@ -129,32 +132,45 @@ def update_routine(address, sheet_id):
             cols.append(value)
         rows.append(cols)
     update_sheet(address, sheet_id, rows)
+    sys.stdout.write('updated address '+address+'\n')
+    connection.add_callback_threadsafe(functools.partial(
+        ch.basic_ack, delivery_tag=method.delivery_tag))
 
 
-def process_message(ch, method, properties, body):
-    sys.stdout.write('received message')
+def process_message(ch, method, properties, body, args):
+    (connection, threads) = args
+    sys.stdout.write('received message\n')
     try:
         message = json.loads(body)
     except:
         sys.stderr.write('malformed message\n')
         sys.stderr.write('message:\n')
         sys.stderr.write(repr(body))
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        return
 
     if 'action' not in message:
-        sys.stdout.write(repr(message))
+        sys.stdout.write(repr(message)+'\n')
     elif message['action'] == 'update':
         address = message['address']
         sheet_id = message['sheet_id']
-        update_routine(address, sheet_id)
-        sys.stdout.write('updated address '+address+'\n')
+        t = threading.Thread(target=update_routine, args=(
+            address, sheet_id, connection, ch, method))
+        t.start()
+        threads.append(t)
+    else:
+        sys.stdout.write('unrecognized action "' + message['action'] + '"\n')
 
-    ch.basic_ack(delivery_tag=method.delivery_tag)
 
+threads = []
 sys.stdout.write('started sheets service\n')
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='queue'))
 channel = connection.channel()
 channel.queue_declare(queue='sheets')
 channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue='sheets', on_message_callback=process_message)
+process_message_callback = functools.partial(
+    process_message, args=(connection, threads))
+channel.basic_consume(
+    queue='sheets', on_message_callback=process_message_callback)
 channel.start_consuming()

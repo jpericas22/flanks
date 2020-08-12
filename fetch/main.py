@@ -94,10 +94,8 @@ if res.status != 200:
     exit(1)
 
 sys.stdout.write('fetching data for address ' + ADDRESS + '\n')
-chunk_n = 0
+
 while chunk := res.read(200):
-    chunk_n += 1
-    sys.stdout.write('received chunk ' + str(chunk_n) + '\n')
     buffer += str(chunk, ENCODING)
 
 data = {}
@@ -118,9 +116,13 @@ insert_objs = map(build_object, transactions)
 sys.stdout.write('processing ' + str(len(transactions)) + ' entries\n')
 result = insert_transactions_to_db(insert_objs)
 stats = result.bulk_api_result
-if stats['nUpserted'] > 0 or stats['nModified'] > 0 or True:
-    sys.stdout.write('received updates')
+sys.stdout.write('processing finished\n')
+sys.stdout.write('rows inserted: ' + str(stats['nUpserted']) + '\n')
+sys.stdout.write('rows updated: ' + str(stats['nModified']) + '\n')
+if True:  # if stats['nUpserted'] > 0 or stats['nModified'] > 0:
+    sys.stdout.write('received updates\n')
     message = {
+        'action': 'update',
         'address': ADDRESS,
         'sheet_id': SHEET_ID
     }

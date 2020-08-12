@@ -14,7 +14,7 @@ mongo_client = MongoClient(
 db = mongo_client[DB_NAME]
 
 
-def get_transactions(address, filter):
+async def get_transactions(address, filter):
     transactions_collection = db['transactions_'+address]
     params = {}
     params['createTime'] = {}
