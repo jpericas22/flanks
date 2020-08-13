@@ -17,7 +17,6 @@ db = mongo_client[DB_NAME]
 def get_transactions(address, filter):
     transactions_collection = db['transactions_'+address]
     params = {}
-    params['createTime'] = {}
     skip = 0
     page = 0
     if 'page' in filter:
@@ -31,8 +30,12 @@ def get_transactions(address, filter):
         params['$expr'] = {
             '$eq': [{'$arrayElemAt': ["$baseTransactions.addressHash", -1]}, filter['to']]}
     if 'date_from' in filter:
+        if 'createTime' not in params:
+            params['createTime'] = {}
         params['createTime']['$gte'] = filter['date_from']
     if 'date_to' in filter:
+        if 'createTime' not in params:
+            params['createTime'] = {}
         params['createTime']['$lte'] = filter['date_to']
 
     count = transactions_collection.count_documents(params)

@@ -120,4 +120,4 @@ async def get_transaction(address, transaction):
     return result, 200
 
 sys.stdout.write('started api service\n')
-app.run(host="0.0.0.0", port=PORT, debug=True)
+app.run(host="localhost", port=PORT, debug=True)

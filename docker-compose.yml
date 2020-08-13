@@ -1,37 +1,31 @@
 version: '3'
 services:
   api:
+    image: 'localhost:5000/flanks/api:1.0'
     build: ./api
     ports:
-      - "5000:5000"
+      - "6501:6501"
     environment:
-      - "PORT=5000"
+      - "PORT=6501"
     env_file:
       - environment.env
-    networks:
-      - default
-      - database
     depends_on:
       - database
     command: ./dockerize -wait tcp://database:27017 -timeout 5m python main.py
   fetch:
+    image: 'localhost:5000/flanks/fetch:1.0'
     build: ./fetch
     env_file:
       - environment.env
-    networks:
-      - database
-      - queue
     depends_on:
       - database
       - queue
     command: ./dockerize -wait tcp://database:27017 -wait tcp://queue:5672 -timeout 5m sh main.sh
   sheets:
+    image: 'localhost:5000/flanks/sheets:1.0'
     build: ./sheets
     env_file:
       - environment.env
-    networks:
-      - database
-      - queue
     depends_on:
       - database
       - queue
@@ -40,18 +34,11 @@ services:
     image: 'mongo:4.4.0-bionic'
     env_file:
       - environment.env
-    ports: #DEBUG
-      - "27017:27017"
-    networks:
-      - default
-      - database
+    expose:
+      - '27017'
     volumes:
       - "./mongo-db-vol:/data/db"
   queue:
     image: 'rabbitmq:3.8.6'
-    networks:
-      - default
-      - queue
-networks:
-  database:
-  queue:
+    expose:
+      - '5672'

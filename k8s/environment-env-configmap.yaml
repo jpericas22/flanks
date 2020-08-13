@@ -1,0 +1,20 @@
+apiVersion: v1
+data:
+  ADDRESS: 51dbd2feecb8c9e3b5c88129da88156d738d00d57bf4524cc780221c4e414ffc9372b00ad7d75679032d928776b044d40d5febb783d8ac9b241b7c0b1cad77de9b699c23
+  DB_NAME: flanks
+  DB_PASSWORD: flanks
+  DB_USER: root
+  FETCH_HOSTNAME: cnode2.coti.bz
+  FETCH_PATH: /transaction/addressTransactions
+  JWT_SECRET: Phpvgo3OM1Q88Qps0IIOxKeHbdBGkStH
+  KEYS_DIR: /src/keys
+  MONGO_INITDB_ROOT_PASSWORD: flanks
+  MONGO_INITDB_ROOT_USERNAME: root
+  PYTHONUNBUFFERED: "1"
+  SHEET_ID: 1RcMHaqXxkZm3FVWxhjN81yx4a9oE5OAIl8M1bZzwZ80
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: api-environment-env
+  name: environment-env
