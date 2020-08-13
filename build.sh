@@ -31,13 +31,5 @@ else
 break
 fi
 done
-printf "\n\n"
-echo "Press 'c' when deploy has finished"
-while : ; do
-read -n 1 k <&1
-if [[ $k = c ]] ; then
 printf "\nStopping registry port forwading\n"
 docker stop flanks_api_registry &> /dev/null
-break
-fi
-done
