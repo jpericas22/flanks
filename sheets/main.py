@@ -69,15 +69,13 @@ def build_append(data):
 
 def execute_append(sheet, id, data):
     append = build_append(data)
-    sys.stdout.write('writing chunks')
-    sys.stdout.flush()
+    print('writing chunks', end='')
     for query in append:
-        sys.stdout.write('.')
-        sys.stdout.flush()
+        print('.', end='')
         sheet.values().append(spreadsheetId=id,
                               range=query['range'], valueInputOption='USER_ENTERED', includeValuesInResponse=False, insertDataOption='OVERWRITE', body=query).execute()
         sleep(1)
-    sys.stdout.write('\n')
+    print('')
 
 
 def update_sheet(address, id, data):
@@ -112,11 +110,11 @@ def json_date_handler(o):
 
 
 def update_routine(address, sheet_id, connection, ch, method):
-    sys.stdout.write('starting sheet update\n')
+    print('starting sheet update')
     transactions = db.get_transactions(address)
     rows = [[]]
     if len(transactions) == 0:
-        sys.stdout.write('no transacctions for address ' + 'ADDRESS' + '\n')
+        print('no transacctions for address ' + 'ADDRESS' + '')
         exit(0)
     for key in transactions[0]:
         rows[0].append(key)
@@ -135,14 +133,14 @@ def update_routine(address, sheet_id, connection, ch, method):
             cols.append(value)
         rows.append(cols)
     update_sheet(address, sheet_id, rows)
-    sys.stdout.write('updated address '+address+'\n')
+    print('updated address '+address+'')
     connection.add_callback_threadsafe(functools.partial(
         ch.basic_ack, delivery_tag=method.delivery_tag))
 
 
 def process_message(ch, method, properties, body, args):
     (connection, threads) = args
-    sys.stdout.write('received message\n')
+    print('received message')
     try:
         message = json.loads(body)
     except:
@@ -153,7 +151,7 @@ def process_message(ch, method, properties, body, args):
         return
 
     if 'action' not in message:
-        sys.stdout.write(repr(message)+'\n')
+        print(repr(message)+'')
     elif message['action'] == 'update':
         address = message['address']
         sheet_id = message['sheet_id']
@@ -162,11 +160,11 @@ def process_message(ch, method, properties, body, args):
         t.start()
         threads.append(t)
     else:
-        sys.stdout.write('unrecognized action "' + message['action'] + '"\n')
+        print('unrecognized action "' + message['action'] + '"')
 
 
 threads = []
-sys.stdout.write('started sheets service\n')
+print('started sheets service')
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='queue'))
 channel = connection.channel()

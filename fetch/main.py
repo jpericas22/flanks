@@ -81,14 +81,12 @@ def insert_transactions_to_db(data):
     requests_chunks = [requests[i:i+CHUNK_SIZE]
                        for i in range(0, len(requests), CHUNK_SIZE)]
     result_list = []
-    sys.stdout.write('writing chunks')
-    sys.stdout.flush()
+    print('writing chunks', end='')
     for chunk in requests_chunks:
-        sys.stdout.write('.')
-        sys.stdout.flush()
+        print('.', end='')
         result = transactions_collection.bulk_write(chunk)
         result_list.append(result)
-    sys.stdout.write('\n')
+    print('')
     result = reduce(collect_insert_results, result_list, {
         'upserted': 0,
         'modified': 0
@@ -96,7 +94,7 @@ def insert_transactions_to_db(data):
     return result
 
 
-sys.stdout.write('started fetch service\n')
+print('started fetch service')
 
 buffer = ''
 headers = {
@@ -114,7 +112,7 @@ if res.status != 200:
     sys.stderr.write('received server status ' + res.status + '\n')
     exit(1)
 
-sys.stdout.write('fetching data for address ' + ADDRESS + '\n')
+print('fetching data for address ' + ADDRESS + '')
 
 while chunk := res.read(200):
     buffer += str(chunk, ENCODING)
@@ -134,15 +132,15 @@ if data['status'] != 'Success':
 
 transactions = data['transactionsData']
 insert_objs = map(build_object, transactions)
-sys.stdout.write('processing ' + str(len(transactions)) + ' entries\n')
+print('processing ' + str(len(transactions)) + ' entries')
 result = insert_transactions_to_db(insert_objs)
-sys.stdout.write('processing finished\n')
+print('processing finished')
 sys.stdout.write('rows inserted: ' +
                  str(result['upserted']) + '\n')
 sys.stdout.write('rows updated: ' +
                  str(result['modified']) + '\n')
 if True:  # if result['nUpserted'] > 0 or result['nModified'] > 0:
-    sys.stdout.write('received updates\n')
+    print('received updates')
     message = {
         'action': 'update',
         'address': ADDRESS,
