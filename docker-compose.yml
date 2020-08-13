@@ -15,7 +15,7 @@ services:
       - database
     command: ./dockerize -wait tcp://database:27017 -timeout 5m python main.py
   fetch:
-    image: 'localhost:5000/flanks/fetch:0.01'
+    image: 'localhost:5000/flanks/fetch:0.05'
     build: ./fetch
     env_file:
       - environment.env
@@ -24,7 +24,7 @@ services:
       - queue
     command: ./dockerize -wait tcp://database:27017 -wait tcp://queue:5672 -timeout 5m sh main.sh
   sheets:
-    image: 'localhost:5000/flanks/sheets:0.01'
+    image: 'localhost:5000/flanks/sheets:0.03'
     build: ./sheets
     env_file:
       - environment.env
@@ -33,7 +33,7 @@ services:
       - queue
     command: ./dockerize -wait tcp://database:27017 -wait tcp://queue:5672 -timeout 5m python main.py
   database:
-    image: 'mongo:4.4.0-bionic'
+    image: 'mongo:4.2.8-bionic'
     env_file:
       - environment.env
     expose:

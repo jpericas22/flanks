@@ -6,8 +6,8 @@ import json
 from pymongo import MongoClient, UpdateOne
 import validator
 from pprint import pprint
-import init_db
 import crypto
+import hashlib
 from functools import reduce
 
 HOSTNAME = os.environ['FETCH_HOSTNAME']
@@ -66,7 +66,8 @@ def collect_insert_results(ra, rb):
 
 
 def insert_transactions_to_db(data):
-    transactions_collection = db['transactions_'+ADDRESS]
+    address_sha256 = hashlib.sha256(ADDRESS.encode(ENCODING)).hexdigest()
+    transactions_collection = db['transactions_'+address_sha256]
     transactions_collection.create_index('hash')
 
     requests = []
@@ -81,12 +82,11 @@ def insert_transactions_to_db(data):
     requests_chunks = [requests[i:i+CHUNK_SIZE]
                        for i in range(0, len(requests), CHUNK_SIZE)]
     result_list = []
-    print('writing chunks', end='')
-    for chunk in requests_chunks:
-        print('.', end='')
+    sys.stdout.write('writing chunks\n')
+    for i, chunk in enumerate(requests_chunks):
+        sys.stdout.write(str(i+1)+'/'+str(len(requests_chunks))+'\n')
         result = transactions_collection.bulk_write(chunk)
         result_list.append(result)
-    print('')
     result = reduce(collect_insert_results, result_list, {
         'upserted': 0,
         'modified': 0
@@ -94,7 +94,7 @@ def insert_transactions_to_db(data):
     return result
 
 
-print('started fetch service')
+sys.stdout.write('started fetch service\n')
 
 buffer = ''
 headers = {
@@ -112,7 +112,7 @@ if res.status != 200:
     sys.stderr.write('received server status ' + res.status + '\n')
     exit(1)
 
-print('fetching data for address ' + ADDRESS + '')
+sys.stdout.write('fetching data for address ' + ADDRESS + '\n')
 
 while chunk := res.read(200):
     buffer += str(chunk, ENCODING)
@@ -132,15 +132,15 @@ if data['status'] != 'Success':
 
 transactions = data['transactionsData']
 insert_objs = map(build_object, transactions)
-print('processing ' + str(len(transactions)) + ' entries')
+sys.stdout.write('processing ' + str(len(transactions)) + ' entries\n')
 result = insert_transactions_to_db(insert_objs)
-print('processing finished')
-sys.stdout.write('rows inserted: ' +
+sys.stdout.write('processing finished\n')
+sys.stdout.write('rows inserted: \n' +
                  str(result['upserted']) + '\n')
-sys.stdout.write('rows updated: ' +
+sys.stdout.write('rows updated: \n' +
                  str(result['modified']) + '\n')
 if True:  # if result['nUpserted'] > 0 or result['nModified'] > 0:
-    print('received updates')
+    sys.stdout.write('received updates\n')
     message = {
         'action': 'update',
         'address': ADDRESS,

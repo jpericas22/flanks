@@ -69,13 +69,12 @@ def build_append(data):
 
 def execute_append(sheet, id, data):
     append = build_append(data)
-    print('writing chunks', end='')
-    for query in append:
-        print('.', end='')
+    sys.stdout.write('writing chunks\n')
+    for i, query in enumerate(append):
+        sys.stdout.write(str(i+1)+'/'+str(len(append))+'\n')
         sheet.values().append(spreadsheetId=id,
                               range=query['range'], valueInputOption='USER_ENTERED', includeValuesInResponse=False, insertDataOption='OVERWRITE', body=query).execute()
         sleep(1)
-    print('')
 
 
 def update_sheet(address, id, data):
@@ -90,7 +89,7 @@ def update_sheet(address, id, data):
             init_sheet = build_sheet(address)
             sheets_res = sheet.create(body=init_sheet).execute()
             id = sheets_res['spreadsheetId']
-            print('ID: '+id)
+            sys.stdout.write('ID: \n'+id)
             permissions = drive_service.permissions()
             permissions_obj = {
                 'type': 'anyone',
@@ -110,11 +109,11 @@ def json_date_handler(o):
 
 
 def update_routine(address, sheet_id, connection, ch, method):
-    print('starting sheet update')
+    sys.stdout.write('starting sheet update\n')
     transactions = db.get_transactions(address)
     rows = [[]]
     if len(transactions) == 0:
-        print('no transacctions for address ' + 'ADDRESS' + '')
+        sys.stdout.write('no transacctions for address ' + 'ADDRESS' + '\n')
         exit(0)
     for key in transactions[0]:
         rows[0].append(key)
@@ -133,14 +132,14 @@ def update_routine(address, sheet_id, connection, ch, method):
             cols.append(value)
         rows.append(cols)
     update_sheet(address, sheet_id, rows)
-    print('updated address '+address+'')
+    sys.stdout.write('updated address '+address+'\n')
     connection.add_callback_threadsafe(functools.partial(
         ch.basic_ack, delivery_tag=method.delivery_tag))
 
 
 def process_message(ch, method, properties, body, args):
     (connection, threads) = args
-    print('received message')
+    sys.stdout.write('received message\n')
     try:
         message = json.loads(body)
     except:
@@ -160,11 +159,11 @@ def process_message(ch, method, properties, body, args):
         t.start()
         threads.append(t)
     else:
-        print('unrecognized action "' + message['action'] + '"')
+        sys.stdout.write('unrecognized action "' + message['action'] + '"\n')
 
 
 threads = []
-print('started sheets service')
+sys.stdout.write('started sheets service\n')
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='queue'))
 channel = connection.channel()

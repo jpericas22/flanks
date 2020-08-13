@@ -118,5 +118,5 @@ async def get_transaction(address, transaction):
     result = db.get_transactions(address, params)
     return result, 200
 
-print('started api service')
+sys.stdout.write('started api service\n')
 app.run(host="0.0.0.0", port=PORT, debug=True)

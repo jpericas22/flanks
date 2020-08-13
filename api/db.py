@@ -8,6 +8,7 @@ ITEMS_PER_PAGE = 25
 DB_USER = os.environ['DB_USER']
 DB_PASSWORD = os.environ['DB_PASSWORD']
 DB_NAME = os.environ['DB_NAME']
+ENCODING = 'utf-8'
 
 mongo_client = MongoClient(
     'mongodb://'+DB_USER+':'+DB_PASSWORD+'@database:27017')
@@ -15,7 +16,8 @@ db = mongo_client[DB_NAME]
 
 
 def get_transactions(address, filter):
-    transactions_collection = db['transactions_'+address]
+    address_sha256 = hashlib.sha256(address.encode(ENCODING)).hexdigest()
+    transactions_collection = db['transactions_'+address_sha256]
     params = {}
     skip = 0
     page = 0
