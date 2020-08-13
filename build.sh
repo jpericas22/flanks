@@ -13,7 +13,7 @@ printf "\n\n"
 break
 fi
 done
-docker rm -f flanks_api_registry 2> /dev/null
+docker rm -f flanks_api_registry &> /dev/null
 docker run --name flanks_api_registry -d --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000"
 docker-compose build
 docker-compose push
@@ -37,7 +37,7 @@ while : ; do
 read -n 1 k <&1
 if [[ $k = c ]] ; then
 printf "\nStopping registry port forwading\n"
-docker stop flanks_api_registry 2> /dev/null
+docker stop flanks_api_registry &> /dev/null
 break
 fi
 done

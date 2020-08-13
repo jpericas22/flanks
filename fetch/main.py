@@ -57,11 +57,13 @@ def build_object(data):
         final[key] = data[key]
     return final
 
+
 def collect_insert_results(ra, rb):
-   return {
-       'upserted': ra['upserted'] + rb.bulk_api_result['nUpserted'],
-       'modified': ra['modified'] + rb.bulk_api_result['nModified']
-   }
+    return {
+        'upserted': ra['upserted'] + rb.bulk_api_result['nUpserted'],
+        'modified': ra['modified'] + rb.bulk_api_result['nModified']
+    }
+
 
 def insert_transactions_to_db(data):
     transactions_collection = db['transactions_'+ADDRESS]
@@ -75,7 +77,7 @@ def insert_transactions_to_db(data):
             upsert=True
         )
         requests.append(request)
-    
+
     requests_chunks = [requests[i:i+CHUNK_SIZE]
                        for i in range(0, len(requests), CHUNK_SIZE)]
     result_list = []
@@ -93,10 +95,6 @@ def insert_transactions_to_db(data):
 
 
 sys.stdout.write('started fetch service\n')
-
-# RUTINA PARA INSERTAR USUARIO DEFAULT DEL CLIENTE
-init_db.run()
-# -----
 
 buffer = ''
 headers = {

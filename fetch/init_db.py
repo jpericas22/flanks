@@ -36,3 +36,5 @@ def run():
     users_collection.update_one({'username': default_user['username']}, {
                                 '$set': default_user}, upsert=True)
     sys.stdout.write('DEBUG:inserted default user to db\n')
+
+run()
