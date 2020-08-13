@@ -5,6 +5,8 @@ services:
     build: ./api
     ports:
       - "6501:6501"
+    labels:
+      kompose.service.type: LoadBalancer
     environment:
       - "PORT=6501"
     env_file:
