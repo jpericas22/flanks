@@ -8,6 +8,7 @@ import validator
 from pprint import pprint
 import init_db
 import crypto
+from functools import reduce
 
 HOSTNAME = os.environ['FETCH_HOSTNAME']
 PATH = os.environ['FETCH_PATH']
@@ -17,6 +18,7 @@ DB_USER = os.environ['DB_USER']
 DB_PASSWORD = os.environ['DB_PASSWORD']
 DB_NAME = os.environ['DB_NAME']
 ENCODING = 'utf-8'
+CHUNK_SIZE = 2000
 
 
 mongo_client = MongoClient(
@@ -55,10 +57,16 @@ def build_object(data):
         final[key] = data[key]
     return final
 
+def collect_insert_results(ra, rb):
+   return {
+       'upserted': ra['upserted'] + rb.bulk_api_result['nUpserted'],
+       'modified': ra['modified'] + rb.bulk_api_result['nModified']
+   }
 
 def insert_transactions_to_db(data):
     transactions_collection = db['transactions_'+ADDRESS]
     transactions_collection.create_index('hash')
+
     requests = []
     for item in data:
         request = UpdateOne(
@@ -67,7 +75,20 @@ def insert_transactions_to_db(data):
             upsert=True
         )
         requests.append(request)
-    result = transactions_collection.bulk_write(requests)
+    
+    requests_chunks = [requests[i:i+CHUNK_SIZE]
+                       for i in range(0, len(requests), CHUNK_SIZE)]
+    result_list = []
+    sys.stdout.write('writing chunk')
+    for chunk in requests_chunks:
+        sys.stdout.write('.')
+        result = transactions_collection.bulk_write(chunk)
+        result_list.append(result)
+    sys.stdout.write('\n')
+    result = reduce(collect_insert_results, result_list, {
+        'upserted': 0,
+        'modified': 0
+    })
     return result
 
 
@@ -115,11 +136,10 @@ transactions = data['transactionsData']
 insert_objs = map(build_object, transactions)
 sys.stdout.write('processing ' + str(len(transactions)) + ' entries\n')
 result = insert_transactions_to_db(insert_objs)
-stats = result.bulk_api_result
 sys.stdout.write('processing finished\n')
-sys.stdout.write('rows inserted: ' + str(stats['nUpserted']) + '\n')
-sys.stdout.write('rows updated: ' + str(stats['nModified']) + '\n')
-if True:  # if stats['nUpserted'] > 0 or stats['nModified'] > 0:
+sys.stdout.write('rows inserted: ' + str(result['nUpserted']) + '\n')
+sys.stdout.write('rows updated: ' + str(result['nModified']) + '\n')
+if True:  # if result['nUpserted'] > 0 or result['nModified'] > 0:
     sys.stdout.write('received updates\n')
     message = {
         'action': 'update',

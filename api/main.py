@@ -115,7 +115,6 @@ async def get_transaction(address, transaction):
     if transaction is not None:
         params['transaction'] = transaction
         
-
     result = db.get_transactions(address, params)
     return result, 200
 

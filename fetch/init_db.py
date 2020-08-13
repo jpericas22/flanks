@@ -35,4 +35,4 @@ def run():
     users_collection.create_index('username', unique=True)
     users_collection.update_one({'username': default_user['username']}, {
                                 '$set': default_user}, upsert=True)
-    sys.stdout.write('inserted default user to db\n')
+    sys.stdout.write('DEBUG:inserted default user to db\n')

@@ -69,12 +69,13 @@ def build_append(data):
 
 def execute_append(sheet, id, data):
     append = build_append(data)
-    for i, query in enumerate(append):
-        sys.stdout.write('uploading part ' + str(i+1) +
-                         '/' + str(len(append)) + '\n')
+    sys.stdout.write('writing chunk')
+    for query in enumerate(append):
+        sys.stdout.write('.')
         sheet.values().append(spreadsheetId=id,
                               range=query['range'], valueInputOption='USER_ENTERED', includeValuesInResponse=False, insertDataOption='OVERWRITE', body=query).execute()
         sleep(1)
+    sys.stdout.write('\n')
 
 
 def update_sheet(address, id, data):
