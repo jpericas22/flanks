@@ -12,7 +12,7 @@ HOSTNAME = os.environ['MONITOR_HOSTNAME']
 ADDRESS = os.environ['ADDRESS']
 
 async def monitor():
-    random_id = ''.join(random.choice(string.ascii_uppercase + string.digits)
+    random_id = ''.join(random.choice(string.ascii_lowercase + string.digits)
             for _ in range(8))
     uri = "wss://" + HOSTNAME + '/websocket/140/' + random_id + '/websocket'
     async with websockets.connect(uri, ssl=True) as websocket:
