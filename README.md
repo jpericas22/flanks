@@ -10,7 +10,7 @@ tested on minikube running on KVM
 
 ## Build
 
-- Make sure you have already started minikube
+- Make sure minikube is running
 - Make sure port 5000 is free (needed for minikube local registry)
 - run ./build.sh on project root dir and follow instructions
 
