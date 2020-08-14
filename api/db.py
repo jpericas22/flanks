@@ -1,6 +1,5 @@
 import os
 import sys
-import hashlib
 import math
 from pymongo import MongoClient
 
@@ -16,8 +15,7 @@ db = mongo_client[DB_NAME]
 
 
 def get_transactions(address, filter):
-    address_sha256 = hashlib.sha256(address.encode(ENCODING)).hexdigest()
-    transactions_collection = db['transactions_'+address_sha256]
+    transactions_collection = db['transactions_' + address]
     params = {}
     skip = 0
     page = 0

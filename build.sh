@@ -17,6 +17,8 @@ docker rm -f flanks_api_registry &> /dev/null
 docker run --name flanks_api_registry -d --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000"
 docker-compose build
 docker-compose push
+printf "Stopping registry port forwading\n"
+docker stop flanks_api_registry &> /dev/null
 mkdir -p k8s
 kompose convert -o ./k8s
 echo "finished building kubectl config"
@@ -31,5 +33,3 @@ else
 break
 fi
 done
-printf "\nStopping registry port forwading\n"
-docker stop flanks_api_registry &> /dev/null

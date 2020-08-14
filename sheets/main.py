@@ -72,9 +72,9 @@ def execute_append(sheet, id, data):
     sys.stdout.write('writing chunks\n')
     for i, query in enumerate(append):
         sys.stdout.write(str(i+1)+'/'+str(len(append))+'\n')
+        sleep(1)
         sheet.values().append(spreadsheetId=id,
                               range=query['range'], valueInputOption='USER_ENTERED', includeValuesInResponse=False, insertDataOption='OVERWRITE', body=query).execute()
-        sleep(1)
 
 
 def update_sheet(address, id, data):
