@@ -46,8 +46,8 @@ def get_transactions(address, filter):
     results = list(transactions_collection.find(
         params, skip=skip, limit=ITEMS_PER_PAGE, projection={'_id': 0}))
     return {
-        'count': count,
-        'countTotal': len(results),
+        'count': len(results),
+        'countTotal': count,
         'page': page,
         'pageTotal': max([0, math.ceil(count/ITEMS_PER_PAGE - 1)]),
         'results': results
