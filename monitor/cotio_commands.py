@@ -8,6 +8,8 @@ def parse(message):
     message = message.replace(r'a["MESSAGE\n', '').replace(r'\u0000"]','')
     message = message.split('\n\n')
     metadata = message[0].split('\n')
+    print(metadata)
+    """
     response = {}
     print(metadata)
     for item in enumerate(metadata):
@@ -16,6 +18,8 @@ def parse(message):
 
     response['data'] = json.loads(message[1])
     return response
+    """
+    return ''
 
 
 def subscribe(address):

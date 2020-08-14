@@ -1,4 +1,5 @@
 mongo-db-vol
 TODO
 sheets/credentials.json
+monitor/__pycache__
 k8s
