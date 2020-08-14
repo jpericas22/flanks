@@ -16,7 +16,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
           'https://www.googleapis.com/auth/drive']
 SERVICE_ACCOUNT_FILE = './credentials.json'
 DEFAULT_FORMAT = '%d/%m/%Y %H:%M:%S'
-CHUNK_SIZE = 1000
+CHUNK_SIZE = 2000
 
 credentials = service_account.Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES)
@@ -72,7 +72,7 @@ def execute_append(sheet, id, data):
     sys.stdout.write('writing chunks\n')
     for i, query in enumerate(append):
         sys.stdout.write(str(i+1)+'/'+str(len(append))+'\n')
-        sleep(1)
+        sleep(2)
         sheet.values().append(spreadsheetId=id,
                               range=query['range'], valueInputOption='USER_ENTERED', includeValuesInResponse=False, insertDataOption='OVERWRITE', body=query).execute()
 
