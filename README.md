@@ -106,6 +106,8 @@ same as POST /address/{address_hash}/transaction
 
 ## Comentarios
 
+He encriptado un campo de las transacciones (leftParentHash) mediante RSA. Cuando se crea un usuario se generan un par de claves. La llave pública se guarda en la base de datos con los datos del usuario, la privada se guarda en el directorio "/src/keys" del servicio "fetch". Idealmente el cliente nos tendría que enviar una llave pública para ellos poder descifrarlo sin enviar la llave privada. El campo se encripta en chunks de 53 bytes
+
 He añadido una opcion para monitorear la cuenta sin tener que realizar la query que devuelve todos los datos. El servicio "monitor" se conecta a un websocket de COTI que devuelve actualizaciones de la cuenta, de momento solo devuelve la información recibida, no inserta nada en la base de datos. Un GET a https://mainnet-nodemanager.coti.io/wallet/nodes devuelve los diferentes WS disponibles.
 
 He añadido el binario de "dockerize" para lanzar los servicios cuando la base de datos y el broker estén activos
