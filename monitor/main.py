@@ -33,7 +33,7 @@ async def monitor():
                     print(message)
         
 try:
-    asyncio.get_event_loop().run_until_complete(monitor())
+    asyncio.run(monitor())
 except KeyboardInterrupt:
     sys.stdout.write('\nexiting\n')
     exit(0)
