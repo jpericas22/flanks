@@ -36,10 +36,8 @@ services:
     image: "mongo:4.4.0-bionic"
     env_file:
       - environment.env
-    #expose:
-    #  - "27017"
-    ports:
-      - "27017:27017"
+    expose:
+      - "27017"
     volumes:
       - "./mongo-db-vol:/data/db"
   queue:
