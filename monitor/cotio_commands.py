@@ -14,7 +14,6 @@ def parse(message):
         item = item.split(':')
         response[item[0]] = item[1]
 
-    print(message[1].encode().decode(ENCODING))
     response['data'] = json.loads(message[1].encode().decode(ENCODING))
     return response
 

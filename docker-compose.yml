@@ -33,7 +33,7 @@ services:
       - queue
     command: ./dockerize -wait tcp://database:27017 -wait tcp://queue:5672 -timeout 5m python main.py
   monitor:
-    image: "localhost:5000/flanks/monitor:0.03"
+    image: "localhost:5000/flanks/monitor:0.01"
     build: ./monitor
     env_file:
       - environment.env
