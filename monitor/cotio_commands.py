@@ -5,11 +5,12 @@ CONNECT = r'["CONNECT\naccept-version:1.2\nheart-beat:10000,10000\n\n\u0000"]'
 
 
 def parse(message):
-    message = message.replace(r'["MESSAGE\n', '').replace(r'\u0000"]','')
+    message = message.replace(r'a["MESSAGE\n', '').replace(r'\u0000"]','')
     message = message.split('\n\n')
-    metadata = message[0].split('n')
+    metadata = message[0].split('\n')
     response = {}
-    for item in metadata:
+    print(metadata)
+    for item in enumerate(metadata):
         item = item.split(':')
         response[item[0]] = item[1]
 
