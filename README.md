@@ -12,7 +12,7 @@ tested on minikube running on KVM
 
 - Make sure you have already started minikube
 - Make sure port 5000 is free (needed for minikube local registry)
-- run ./build.sh on root dir and follow instructions
+- run ./build.sh on project root dir and follow instructions
 
 ## API Doc
 
@@ -106,7 +106,9 @@ same as POST /address/{address_hash}/transaction
 
 ## Comentarios
 
-He añadido una opcion para monitorear la cuenta sin tener que realizar la query que devuelve todos los datos. El servicio "monitor" se conecta a un websocket de COTI que devuelve actualizaciones de la cuenta, de momento solo devuelve la información recibida, no inserta nada en la base de datos
+He añadido una opcion para monitorear la cuenta sin tener que realizar la query que devuelve todos los datos. El servicio "monitor" se conecta a un websocket de COTI que devuelve actualizaciones de la cuenta, de momento solo devuelve la información recibida, no inserta nada en la base de datos. Un GET a https://mainnet-nodemanager.coti.io/wallet/nodes devuelve los diferentes WS disponibles.
+
+He añadido el binario de "dockerize" para lanzar los servicios cuando la base de datos y el broker estén activos
 
 He tenido que usar también la api de Google Docs para dar permisos al sheet cuando se crea para que el link sea público
 
