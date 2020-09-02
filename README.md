@@ -112,8 +112,8 @@ He añadido una opcion para monitorear la cuenta sin tener que realizar la query
 
 He añadido el binario de "dockerize" para lanzar los servicios cuando la base de datos y el broker estén activos
 
-He tenido que usar también la api de Google Docs para dar permisos al sheet cuando se crea para que el link sea público
+He tenido que usar también la api de Google Drive para dar permisos al sheet cuando se crea para que el link sea público
 
-El dump a google sheets está optimizado a nivel de procesamiento, no a nivel de envio de datos. Con tal de reducir carga de procesamiento, se borran los datos del sheet y se vuelven a introducir (en el mismo documento)
+El dump a Google Sheets está optimizado a nivel de procesamiento, no a nivel de envio de datos. Con tal de reducir carga de procesamiento, se borran los datos del sheet y se vuelven a introducir (en el mismo documento)
 
-La api de google está configurada para usar mis credenciales (archivo g_flanks_k.zip) y reusar un sheet_id hardcodeado en una variable de entorno. El código esta preparado para crear un documento nuevo en caso de que el sheet no exista
+La api de Google está configurada para usar mis credenciales (archivo g_flanks_k.zip) y reusar un sheet_id hardcodeado en una variable de entorno. El código esta preparado para crear un documento nuevo en caso de que el sheet no exista
