@@ -17,6 +17,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets',
 SERVICE_ACCOUNT_FILE = './credentials.json'
 DEFAULT_FORMAT = '%d/%m/%Y %H:%M:%S'
 CHUNK_SIZE = 2000
+CHUNK_LIMIT = 10
 
 credentials = service_account.Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES)
@@ -56,7 +57,7 @@ def build_append(data):
 
     data_chunks = [data[i:i+CHUNK_SIZE]
                    for i in range(0, len(data), CHUNK_SIZE)]
-    for i, chunk in enumerate(data_chunks):
+    for i, chunk in enumerate(data_chunks[-CHUNK_LIMIT:]):
         value_obj = {
             "range": 'A'+str(i*CHUNK_SIZE+1)+':'+sheet_col_end+str((i+1)*CHUNK_SIZE+1),
             "majorDimension": "ROWS",
@@ -89,7 +90,7 @@ def update_sheet(address, id, data):
             init_sheet = build_sheet(address)
             sheets_res = sheet.create(body=init_sheet).execute()
             id = sheets_res['spreadsheetId']
-            sys.stdout.write('ID: \n'+id)
+            sys.stdout.write('ID: '+ id + '\n')
             permissions = drive_service.permissions()
             permissions_obj = {
                 'type': 'anyone',
